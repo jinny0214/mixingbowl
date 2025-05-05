@@ -1,0 +1,32 @@
+*.yml
+
+# Gradle
+.gradle
+build/
+
+# Frontend
+/frontend/node_modules/
+/frontend/dist/
+
+# Backend
+/backend/target/
+*.class
+
+# AI Server
+/ai-server/__pycache__/
+/ai-server/env/
+/ai-server/.venv/
+
+# 공통
+.DS_Store
+*.log
+.idea/
+.vscode/
+*.tmp
+*.swp
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
