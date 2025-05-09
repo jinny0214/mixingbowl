@@ -1,4 +1,5 @@
 *.yml
+.env
 
 # Gradle
 .gradle
