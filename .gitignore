@@ -12,10 +12,18 @@ build/
 /backend/target/
 *.class
 
-# AI Server
+
 /ai-server/__pycache__/
 /ai-server/env/
-/ai-server/.venv/
+/ai-server/venv/
+
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
 # 공통
 .DS_Store
