@@ -1,0 +1,86 @@
+# 빌드 시스템 설정
+# hatchling을 사용하여 프로젝트를 빌드
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# 프로젝트 기본 정보
+# name, version, description 등 프로젝트의 메타데이터를 정의
+[project]
+name = "mixingbowl-nlp"
+version = "0.1.0"
+description = "NLP 서버 for Mixing Bowl Project"
+readme = "README.md"
+requires-python = ">=3.9"  # Python 3.9 이상 버전 필요
+license = "MIT"
+authors = [
+    { name = "Mixing Bowl Team" }
+]
+
+# 프로젝트의 필수 의존성 패키지 목록
+# pip install . 명령어로 설치되는 패키지
+dependencies = [
+    "flask>=2.0.0",          # 웹 프레임워크
+    "flask-cors>=3.0.0",     # CORS 지원
+    "python-dotenv>=0.19.0", # 환경 변수 관리
+    "requests>=2.26.0",      # HTTP 클라이언트
+    "konlpy>=0.6.0",         # 한국어 자연어 처리
+    "gunicorn>=20.1.0",      # WSGI HTTP 서버
+    "scikit-learn>=1.4.0",   # 머신러닝 라이브러리
+    "numpy>=1.26.4",         # 수치 계산 라이브러리
+    "spacy>=3.7.4",          # 자연어 처리 라이브러리
+]
+
+# 선택적 의존성 패키지 목록
+# pip install ".[dev]" 명령어로 설치되는 개발용 패키지
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",     # 테스트 프레임워크
+    "pytest-cov>=3.0.0", # 테스트 커버리지 측정
+    "black>=22.0.0",     # 코드 포맷터
+    "isort>=5.0.0",      # import 문 정렬
+    "flake8>=4.0.0",     # 코드 린터
+]
+
+# Hatch 개발 환경 설정
+# hatch env create 명령어로 생성되는 개발 환경의 설정
+[tool.hatch.envs.mixing_dev]
+dependencies = [
+    "flask>=2.0.0",
+    "flask-cors>=3.0.0",
+    "python-dotenv>=0.19.0",
+    "requests>=2.26.0",
+    "konlpy>=0.6.0",
+    "gunicorn>=20.1.0",
+    "scikit-learn>=1.4.0",
+    "numpy>=1.26.4",
+    "spacy>=3.7.4",
+    "pytest>=7.0.0",
+    "pytest-cov>=3.0.0",
+    "black>=22.0.0",
+    "isort>=5.0.0",
+    "flake8>=4.0.0",
+]
+
+# Hatch 빌드 설정
+# 패키지 빌드 시 포함할 디렉토리
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+# pytest 설정
+# 테스트 실행 시 사용할 옵션들을 정의
+[tool.pytest.ini_options]
+testpaths = ["tests"]           # 테스트 파일이 있는 디렉토리
+python_files = ["test_*.py"]    # 테스트 파일 패턴
+addopts = "-v --cov=app --cov-report=term-missing"  # 상세 출력 및 커버리지 리포트
+
+# Black 코드 포맷터 설정
+[tool.black]
+line-length = 88                # 한 줄의 최대 길이
+target-version = ["py39"]       # Python 3.9 문법 사용
+
+# isort 설정
+# import 문 정렬 도구의 설정
+[tool.isort]
+profile = "black"               # black과 호환되는 설정 사용
+multi_line_output = 3           # 여러 줄 import 문 스타일
