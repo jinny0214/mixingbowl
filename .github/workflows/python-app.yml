@@ -24,17 +24,20 @@ jobs:
     
     - name: Create virtual environment
       run: hatch env create
-    
+      working-directory: nlp-server
+
     - name: Install dependencies
       run: hatch run pip install ".[dev]"
-    
+      working-directory: nlp-server
+
     - name: Run tests with pytest
       run: hatch run pytest --cov=app --cov-report=xml
+      working-directory: nlp-server
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
-        file: ./coverage.xml
+        file: nlp-server/coverage.xml
         fail_ci_if_error: true
 
   lint:
@@ -52,18 +55,23 @@ jobs:
     
     - name: Create virtual environment
       run: hatch env create
+      working-directory: nlp-server
 
     - name: Install dependencies
       run: hatch run pip install ".[dev]"
+      working-directory: nlp-server
 
     - name: Run black
       run: hatch run black . --check
+      working-directory: nlp-server
 
     - name: Run isort
       run: hatch run isort . --check-only
+      working-directory: nlp-server
 
     - name: Run flake8
       run: hatch run flake8 .
+      working-directory: nlp-server
 
   deploy:
     needs: [test, lint]
@@ -83,10 +91,12 @@ jobs:
     
     - name: Create virtual environment
       run: hatch env create
-    
+      working-directory: nlp-server
+
     - name: Install dependencies
       run: hatch run pip install ".[dev]"
-    
+      working-directory: nlp-server
+
     - name: Deploy to production
       env:
         FLASK_ENV: production
@@ -94,3 +104,4 @@ jobs:
         NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
       run: |
         echo "Deployment steps will be added here" 
+      working-directory: nlp-server
