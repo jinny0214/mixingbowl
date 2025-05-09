@@ -73,6 +73,7 @@ packages = ["app"]
 testpaths = ["tests"]           # 테스트 파일이 있는 디렉토리
 python_files = ["test_*.py"]    # 테스트 파일 패턴
 addopts = "-v --cov=app --cov-report=term-missing"  # 상세 출력 및 커버리지 리포트
+pythonpath = "." # 테스트 파일 경로 지정
 
 # Black 코드 포맷터 설정
 [tool.black]
