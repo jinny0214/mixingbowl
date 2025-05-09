@@ -1,73 +1,53 @@
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 from flask_cors import CORS
+from app.api.routes import api_bp
 import os
-import requests
-from konlpy.tag import Okt
+import logging
+import time
 
 # 환경 변수 로드
 load_dotenv()
 
+# 로깅 설정
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+)
+
 app = Flask(__name__)
 CORS(app)
 
-# 네이버 API 키
-NAVER_CLIENT_ID = os.getenv('NAVER_CLIENT_ID')
-NAVER__CLIENT_SECRET = os.getenv('NAVER__CLIENT_SECRET')
+# Blueprint 등록
+app.register_blueprint(api_bp)
 
-# 기본 라우트
-@app.route('/')
-def home():
-    return jsonify({
-        'message': 'Welcome to Mixing Bowl AI Server',
-        'status': 'running'
-    })
+# 요청 전 시간 기록
+@app.before_request
+def start_timer():
+    request.start_time = time.time()
 
-# 키워드 추출
-def extract_keywords(text):
-    okt = Okt()
-    nouns = okt.nouns(text)
-    return nouns[:3]
+# 요청 후 처리 시간 로깅
+@app.after_request
+def log_request(response):
+    if hasattr(request, 'start_time'):
+        duration = time.time() - request.start_time
+        logging.info(f"{request.method} {request.path} {response.status_code} 처리시간: {duration:.3f}s")
+    return response
 
-# 네이버 블로그 검색 API 호출
-def search_naver_blog(keywords):
-    query = ' '.join(keywords)
-    url = 'https://openapi.naver.com/v1/search/blog.json'
-    headers = {
-        'X-Naver-Client-Id': NAVER_CLIENT_ID,
-        'X-Naver-Client-Secret': NAVER__CLIENT_SECRET
+# 글로벌 에러 핸들러
+@app.errorhandler(Exception)
+def handle_exception(e):
+    logging.exception("Unhandled Exception: %s", e)
+    response = {
+        "error": "서버 내부 오류가 발생했습니다.",
+        "detail": str(e)
     }
-    params = {
-        'query': query,
-        'display': 5
-    }
-    response = requests.get(url, headers=headers, params=params)
-    return response.json()
-
-
-@app.route('/search', methods=['POST'])
-def nlp_handler():
-    data = request.get_json()
-    user_input = data.get('text', '')
-
-    keywords = extract_keywords(user_input)
-    blog_data = search_naver_blog(keywords)
-
-    return jsonify({
-        'keywords': keywords,
-        'blog_data': blog_data
-    })
-
-
-# API 상태 확인 엔드포인트
-@app.route('/health')
-def health_check():
-    return jsonify({
-        'status': 'healthy',
-        'version': '1.0.0'
-    })
+    return jsonify(response), 500
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5001))
     debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
-    app.run(host='0.0.0.0', port=port, debug=debug) 
+    logging.info(f"Starting server on port {port} (debug={debug})")
+    app.run(host='0.0.0.0', port=port, debug=debug)
+
+app = app
