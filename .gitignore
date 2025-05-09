@@ -1,5 +1,5 @@
 *.yml
-.env
+*.env
 
 # Gradle
 .gradle
@@ -17,6 +17,16 @@ build/
 /ai-server/__pycache__/
 /ai-server/env/
 /ai-server/.venv/
+
+# NLP Server
+/nlp-server/**/__pycache__/
+/nlp-server/.env
+/nlp-server/.pytest_cache/
+/nlp-server/.coverage
+/nlp-server/htmlcov/
+/nlp-server/dist/
+/nlp-server/build/
+/nlp-server/*.egg-info/
 
 # 공통
 .DS_Store
