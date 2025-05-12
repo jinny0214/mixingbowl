@@ -2,6 +2,20 @@
 
 이 디렉토리에는 MixingBowl 프로젝트의 서버 관리를 위한 스크립트들이 포함되어 있습니다.
 
+## ⚙️ Java 환경 설정
+
+백엔드 서버는 Java 21이 필요합니다. `server-start.sh` 스크립트에서 Java 경로를 설정할 수 있습니다
+
+```bash
+# server-start.sh 파일 상단에서 Java 경로 설정
+JAVA_HOME_PATH="/usr/lib/jvm/java-21-openjdk-amd64"  # 이 값을 환경에 맞게 수정하세요
+```
+
+### 일반적인 Java 경로 예시:
+- Ubuntu: `/usr/lib/jvm/java-21-openjdk-amd64`
+- macOS: `/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home`
+- Windows: `C:\Program Files\Java\jdk-21`
+
 ## 📋 스크립트 목록
 
 | 스크립트 | 설명 | 실행 권한 |
@@ -84,8 +98,9 @@ chmod +x *.sh
    - 서버 종료 시 자동으로 삭제됩니다
 
 4. **Java 환경**
-   - 백엔드 서버는 Java 17이 필요합니다
-   - 스크립트에서 자동으로 Java 17 환경을 설정합니다
+   - 백엔드 서버는 Java 21이 필요합니다
+   - 스크립트에서 자동으로 Java 21 환경을 설정합니다
+   - Java 경로는 `server-start.sh` 파일 상단에서 설정할 수 있습니다
 
 ## 🔧 문제 해결
 
