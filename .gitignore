@@ -17,19 +17,6 @@ build/
 /backend/target/
 *.class
 
-
-/ai-server/__pycache__/
-/ai-server/env/
-/ai-server/venv/
-
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
 # NLP Server
 /nlp-server/**/__pycache__/
 /nlp-server/.env
