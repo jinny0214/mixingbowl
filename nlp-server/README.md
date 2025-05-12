@@ -11,6 +11,7 @@ Mixing Bowl 프로젝트의 자연어 처리(NLP) 서버입니다. 텍스트에�
 - 텍스트에서 키워드 추출 (KoNLPy의 Okt 사용)
 - 네이버 블로그 검색 API 연동
 - RESTful API 엔드포인트 제공
+- 레시피 블로그 필터링 기능
 
 ---
 
@@ -81,16 +82,26 @@ NAVER_CLIENT_SECRET=your_client_secret
 - `/search` 요청:
 ```json
 {
-  "text": "분석할 텍스트"
+  "text": "분석할 텍스트",
+  "recipe_filter": true
 }
 ```
 - `/search` 응답:
 ```json
 {
   "keywords": ["키워드1", "키워드2", "키워드3"],
-  "blog_data": { /* 네이버 블로그 검색 결과 */ }
+  "blog_data": { /* 네이버 블로그 검색 결과 */ },
+  "recipe_filter_applied": true
 }
 ```
+
+### 레시피 필터링
+Mixing Bowl NLP 서버는 맛집 정보가 아닌 레시피 블로그만 필터링하는 기능을 제공합니다.
+
+- `recipe_filter` 옵션을 `true`로 설정하면 레시피 키워드가 포함된 블로그만 반환합니다.
+- 블로그 제목이나 내용에 "레시피", "만들기", "조리법" 등 요리 관련 키워드가 포함된 경우에만 결과에 포함됩니다.
+- 기본적으로 활성화되어 있으며, API 요청에서 `"recipe_filter": false`로 설정하여 비활성화할 수 있습니다.
+- 레시피 관련 키워드는 `app/config.py`의 `RECIPE_KEYWORDS` 리스트에서 관리됩니다.
 
 ---
 
