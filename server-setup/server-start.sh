@@ -8,6 +8,9 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
+# Java 경로 설정
+JAVA_HOME_PATH="/usr/lib/jvm/java-21-openjdk-amd64"  # Java 경로를 여기서 설정
+
 echo -e "${YELLOW}서버를 시작합니다...${NC}"
 
 # NLP 서버 시작
@@ -18,7 +21,7 @@ echo -e "${BLUE}[NLP 서버]${NC} 시작됨 (PID: $NLP_PID)"
 
 # 백엔드 서버 시작
 cd ../backend
-export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export JAVA_HOME=$JAVA_HOME_PATH
 export PATH=$JAVA_HOME/bin:$PATH
 ./gradlew bootRun > backend.log 2>&1 &
 BACKEND_PID=$!
