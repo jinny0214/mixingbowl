@@ -6,10 +6,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+    private static final String ALLOWED_ORIGIN = "http://localhost:5173";
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173") // Vue 개발 서버 주소
+                .allowedOrigins(ALLOWED_ORIGIN) // Vue 개발 서버 주소
                 .allowedMethods("*")
                 .allowCredentials(true);
     }

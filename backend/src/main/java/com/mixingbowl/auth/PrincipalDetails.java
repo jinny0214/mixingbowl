@@ -23,14 +23,12 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
 
     // OAuth 로그인
     public PrincipalDetails(Users user, Map<String, Object> attributes) {
-        System.out.println("OAuth 로그인 !!!!!!1" + user.toString());
         this.user = user;
         this.attributes = attributes;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        log.info("PrincipalDetails getAuthorities() ");
         Collection<GrantedAuthority> collect = new ArrayList<>();
         // collect.add((GrantedAuthority) () -> user.getName());
 
