@@ -17,7 +17,7 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    // private final BCryptPasswordEncoder bCryptPasswordEncoder;
+     private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional
     public Long join(Users user) {
@@ -46,8 +46,7 @@ public class UserService {
     }
 
     public boolean checkPassword(String rawPassword, String encodedPassword) {
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        return encoder.matches(rawPassword, encodedPassword);
+        return passwordEncoder.matches(rawPassword, encodedPassword);
     }
 
 }

@@ -3,14 +3,15 @@ package com.mixingbowl.oauth;
 import com.mixingbowl.auth.PrincipalDetails;
 import com.mixingbowl.user.domain.Users;
 import com.mixingbowl.user.repository.UserRepository;
-import com.mixingbowl.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,10 +19,12 @@ import org.springframework.stereotype.Service;
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
-    private final UserService userService;
+
+    private final PasswordEncoder passwordEncoder;
 
     // 구글로부터 받은 userRequest 데이터에 대한 후처리
     @Override
+    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
         //userRequest 정보 -> loadUser 호출 -> 구글로부터 회원 프로필 받아옴
@@ -50,7 +53,8 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             newUser.setEmail(email);
             newUser.setProvider(provider);
             newUser.setProviderId(providerId);
-            userService.join(newUser);
+            newUser.setPassword(passwordEncoder.encode(providerId)); // 임시 비밀번호 설정
+            userRepository.save(newUser);
             return newUser;
         });
 
