@@ -27,3 +27,10 @@ class Config:
     NAVER_API_URL: str = "https://openapi.naver.com/v1/search/blog.json"
     MAX_KEYWORDS: int = 3
     BLOG_DISPLAY_COUNT: int = 5 
+    
+    # 레시피 필터링 설정
+    RECIPE_FILTER_ENABLED: bool = True
+    RECIPE_KEYWORDS: list[str] = [
+        "레시피", "만들기", "조리법", "요리법", "만드는 법", "조리방법", 
+        "요리하기", "레시피북", "조리", "요리", "재료", "황금레시피"
+    ] 

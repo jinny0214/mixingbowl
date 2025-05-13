@@ -89,9 +89,20 @@ chmod +x *.sh
 
 2. **로그 파일**
    - 각 서버의 로그는 다음 위치에 저장됩니다:
-     - NLP 서버: `nlp-server/nlp-server.log`
-     - 백엔드 서버: `backend/backend.log`
-     - 프론트엔드 서버: `frontend/frontend.log`
+     - NLP 서버: `logs/nlp-server.log`
+     - 백엔드 서버: `logs/backend.log`
+     - 프론트엔드 서버: `logs/frontend.log`
+   - 로그 확인 방법:
+     ```bash
+     # NLP 서버 로그 확인
+     tail -f logs/nlp-server.log
+     
+     # 백엔드 서버 로그 확인
+     tail -f logs/backend.log
+     
+     # 프론트엔드 서버 로그 확인
+     tail -f logs/frontend.log
+     ```
 
 3. **PID 파일**
    - 서버 시작 시 `server.pid` 파일이 생성됩니다
