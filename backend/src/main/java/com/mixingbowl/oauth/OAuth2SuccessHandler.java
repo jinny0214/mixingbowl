@@ -19,19 +19,19 @@ import java.io.IOException;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtUtil jwtUtil;
+    private static final String REDIRECT_URL = "http://localhost:5173/oauth2/redirect?token=";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException, ServletException {
 
-        log.info("OAuth2 Login Success ! ");
         PrincipalDetails oAuth2User = (PrincipalDetails) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
         String token = jwtUtil.generateToken(email);
 
         // 프론트엔드로 리다이렉트
-        String redirectUrl = "http://localhost:5173/oauth2/redirect?token=" + token;
+        String redirectUrl = REDIRECT_URL + token;
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }
