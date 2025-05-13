@@ -5,6 +5,9 @@
 # 환경 설정 파일
 *.env
 
+# 서버 실행 & 중지 pid
+*.pid
+
 # Gradle
 .gradle
 build/
