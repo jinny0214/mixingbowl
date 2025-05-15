@@ -40,7 +40,6 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             log.info("google login");
             oAuth2UserInfo = new GoogleUserDetails(oAuth2User.getAttributes());
         }
-        System.out.println(oAuth2UserInfo.getName());
         String providerId = oAuth2UserInfo.getProviderId();
         String email = oAuth2UserInfo.getEmail();
         // String loginId = provider + "_" +providerId;

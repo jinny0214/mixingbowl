@@ -1,7 +1,9 @@
 package com.mixingbowl.config;
 
+import com.mixingbowl.filter.JwtAuthenticationFilter;
 import com.mixingbowl.oauth.OAuth2SuccessHandler;
 import com.mixingbowl.oauth.PrincipalOauth2UserService;
+import com.mixingbowl.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -10,9 +12,9 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity // 스프링 시큐리티 필터가 스프링 필터체인에 등록
@@ -23,6 +25,8 @@ public class SecurityConfig {
 
     private final PrincipalOauth2UserService principalOauth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final JwtUtil jwtUtil;
+    private final UserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -39,7 +43,8 @@ public class SecurityConfig {
                         .authorizationEndpoint(authorization -> authorization.baseUri("/oauth2/authorization"))
                         .userInfoEndpoint(userInfo -> userInfo.userService(principalOauth2UserService))
                         .successHandler(oAuth2SuccessHandler)
-                );
+                )
+                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil, userDetailsService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
