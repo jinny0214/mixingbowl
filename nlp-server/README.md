@@ -124,5 +124,53 @@ Mixing Bowl NLP 서버는 맛집 정보가 아닌 레시피 블로그만 필터�
 
 ---
 
+## 🐳 Docker 환경 구성 및 실행
+
+### Docker 구성 요소
+| 구성 요소 | 설명 | 포트 |
+|----------|------|------|
+| 🚀 NLP 서버 | KoNLPy 기반 자연어 처리 서버 | 5001 |
+| 📊 Prometheus | 메트릭 수집 및 모니터링 | 9090 |
+| 📈 Grafana | 데이터 시각화 대시보드 | 3000 |
+
+### 주요 Docker 명령어
+| 명령어 | 설명 |
+|--------|------|
+| `docker-compose up -d` | 모든 서비스 백그라운드 실행 |
+| `docker-compose up -d nlp-server` | NLP 서버만 실행 |
+| `docker-compose down` | 모든 서비스 중지 및 컨테이너 제거 |
+| `docker-compose logs -f nlp-server` | NLP 서버 로그 실시간 확인 |
+| `docker-compose ps` | 실행 중인 서비스 상태 확인 |
+| `docker-compose build nlp-server` | NLP 서버 이미지 재빌드 |
+| `docker-compose restart nlp-server` | NLP 서버 재시작 |
+
+### 🔧 리소스 제한 설정
+- 메모리: 1GB
+- CPU: 1 코어
+- 로그 로테이션: 최대 10MB, 3개 파일 유지
+
+### 📁 볼륨 마운트
+- `./logs:/app/logs`: 로그 파일 저장
+- `.:/app`: 애플리케이션 코드
+- `prometheus_data`: Prometheus 데이터 저장
+- `grafana_data`: Grafana 데이터 저장
+
+### 🌐 네트워크
+- `nlp-network`: 서비스 간 통신을 위한 브릿지 네트워크
+
+### 🔐 환경 변수
+```env
+PORT=5001
+FLASK_ENV=production
+FLASK_DEBUG=0
+NAVER_CLIENT_ID=your_client_id
+NAVER_CLIENT_SECRET=your_client_secret
+GRAFANA_PASSWORD=admin  # Grafana 관리자 비밀번호 **추후 변경 가능**
+```
+
+### 💡 모니터링 접속
+- Prometheus: http://localhost:9090
+- Grafana: http://localhost:3000 (기본 계정: admin/admin)
+
 ## 라이선스
 MIT License
