@@ -5,13 +5,13 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import lombok.ToString;
 
 @Entity
 @Getter @Setter
+@ToString
 public class Users {
 
     @Id @GeneratedValue
@@ -28,14 +28,4 @@ public class Users {
     private String provider;
     private String providerId;
 
-    @Override
-    public String toString() {
-        return "Users{" +
-                "id=" + id +
-                ", email='" + email + '\'' +
-                ", name='" + name + '\'' +
-                ", provider='" + provider + '\'' +
-                ", providerId='" + providerId + '\'' +
-                '}';
-    }
 }

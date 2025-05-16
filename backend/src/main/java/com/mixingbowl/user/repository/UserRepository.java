@@ -2,7 +2,6 @@ package com.mixingbowl.user.repository;
 
 import com.mixingbowl.user.domain.Users;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -19,8 +18,8 @@ public class UserRepository {
         em.persist(user);
     }
 
-    public Users findOne(Long id) {
-        return em.find(Users.class, id);
+    public Optional<Users> findOne(Long id) {
+        return Optional.ofNullable(em.find(Users.class, id));
     }
 
     public List<Users> findAll() {
@@ -33,13 +32,10 @@ public class UserRepository {
                 .getResultList();
     }
 
-    public Users findByEmail(String email) {
-        try {
-            return em.createQuery("select u from Users u where u.email = :email", Users.class)
-                    .setParameter("email", email)
-                    .getSingleResult();
-        } catch (NoResultException e) {
-            return null;
-        }
+    public Optional<Users> findByEmail(String email) {
+        List<Users> results = em.createQuery("select u from Users u where u.email = :email", Users.class)
+                .setParameter("email", email)
+                .getResultList();
+        return results.stream().findFirst();
     }
 }

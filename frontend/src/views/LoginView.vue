@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import AuthForm from '../components/AuthForm2.vue'
+import AuthForm from '../components/AuthForm.vue'
 import { ref } from 'vue'
 
 const isLogin = ref(true)

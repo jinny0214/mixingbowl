@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -16,7 +17,7 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    // private final BCryptPasswordEncoder bCryptPasswordEncoder;
+     private final BCryptPasswordEncoder passwordEncoder;
 
     @Transactional
     public Long join(Users user) {
@@ -26,28 +27,26 @@ public class UserService {
     }
 
     private void validateDuplicateMember(Users user) {
-        Users findUser = userRepository.findByEmail(user.getEmail());
-
-        if (findUser != null) {
-            throw new IllegalStateException("이미 존재하는 이메일입니다.");
-        }
+        userRepository.findByEmail(user.getEmail())
+                .ifPresent(findUser -> {
+                    throw new IllegalStateException("이미 존재하는 이메일입니다.");
+                });
     }
 
     public List<Users> findUsers() {
         return userRepository.findAll();
     }
 
-    public Users findUser(Long userId) {
+    public Optional<Users> findUser(Long userId) {
         return userRepository.findOne(userId);
     }
 
-    public Users findUser(String email) {
+    public Optional<Users> findUser(String email) {
         return userRepository.findByEmail(email);
     }
 
     public boolean checkPassword(String rawPassword, String encodedPassword) {
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        return encoder.matches(rawPassword, encodedPassword);
+        return passwordEncoder.matches(rawPassword, encodedPassword);
     }
 
 }
