@@ -9,9 +9,13 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /build/wheels -r requirements.txt
+# Install build tools and copy project files
+RUN pip install --no-cache-dir hatch
+COPY pyproject.toml .
+COPY README.md .
+
+# Build wheel
+RUN hatch build -t wheel
 
 # Runtime stage
 FROM python:3.9-slim
@@ -31,12 +35,11 @@ ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 # Create non-root user
 RUN adduser --disabled-password --gecos '' appuser
 
-# Copy wheels from builder
-COPY --from=builder /build/wheels /wheels
-COPY --from=builder /build/requirements.txt .
+# Copy wheel from builder
+COPY --from=builder /build/dist/*.whl /wheels/
 
-# Install dependencies
-RUN pip install --no-cache /wheels/*
+# Install the wheel
+RUN pip install --no-cache-dir /wheels/*.whl
 
 # Copy application code
 COPY . /app/
