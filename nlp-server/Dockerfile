@@ -1,24 +1,58 @@
-FROM python:3.9-slim
+# Build stage
+FROM python:3.9-slim as builder
 
-WORKDIR /app
+WORKDIR /build
 
-# 빌드 도구 설치
+# Install build dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Hatch 설치
-RUN pip install hatch
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /build/wheels -r requirements.txt
 
-# 프로젝트 파일 복사
-COPY nlp-server/ .
+# Runtime stage
+FROM python:3.9-slim
 
-# 의존성 설치
-RUN hatch env create
+WORKDIR /app
 
-# 포트 노출
-EXPOSE 5001
+# Install Java and other dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    default-jdk \
+    default-jre \
+    && rm -rf /var/lib/apt/lists/*
 
-# 서버 실행
-CMD ["hatch", "run", "python", "app.py"]
+# Set JAVA_HOME
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+
+# Create non-root user
+RUN adduser --disabled-password --gecos '' appuser
+
+# Copy wheels from builder
+COPY --from=builder /build/wheels /wheels
+COPY --from=builder /build/requirements.txt .
+
+# Install dependencies
+RUN pip install --no-cache /wheels/*
+
+# Copy application code
+COPY . /app/
+
+# Set ownership
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-5001}/health || exit 1
+
+# Expose port
+EXPOSE ${PORT:-5001}
+
+# Run application
+CMD ["python", "app.py"]
