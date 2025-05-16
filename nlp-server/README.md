@@ -172,5 +172,35 @@ GRAFANA_PASSWORD=admin  # Grafana 관리자 비밀번호 **추후 변경 가능*
 - Prometheus: http://localhost:9090
 - Grafana: http://localhost:3000 (기본 계정: admin/admin)
 
+### 🏗️ Docker 빌드 프로세스
+
+#### 멀티 스테이지 빌드
+1. **빌드 스테이지** 📦
+   - Python 3.9 slim 이미지 사용
+   - 빌드 의존성 설치 (gcc, g++)
+   - Hatch 설치 및 wheel 파일 생성
+   - `pyproject.toml` 기반 의존성 관리
+
+2. **런타임 스테이지** 🚀
+   - Python 3.9 slim 이미지
+   - Java 설치 (KoNLPy 의존성)
+   - 빌드 스테이지에서 생성된 wheel 파일 설치
+   - 보안을 위한 non-root 사용자 실행
+
+#### 의존성 관리
+- `requirements.txt` 대신 `pyproject.toml` 사용
+- Hatch를 통한 의존성 빌드 및 관리
+- 개발 환경과 동일한 의존성 보장
+
+#### 보안 설정
+- non-root 사용자 `appuser` 사용
+- 최소한의 런타임 의존성만 포함
+- 주기적인 헬스 체크 구현
+
+#### 이미지 최적화
+- 멀티 스테이지 빌드로 최종 이미지 크기 최소화
+- 불필요한 빌드 의존성 제외
+- 캐시 자동 정리
+
 ## 라이선스
 MIT License
