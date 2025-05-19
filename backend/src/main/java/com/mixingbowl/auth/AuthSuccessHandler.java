@@ -1,7 +1,6 @@
 package com.mixingbowl.auth;
 
 import com.mixingbowl.util.JwtUtil;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
