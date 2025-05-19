@@ -5,6 +5,7 @@ import com.mixingbowl.user.domain.Users;
 import com.mixingbowl.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -12,6 +13,8 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -40,14 +43,21 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             log.info("google login");
             oAuth2UserInfo = new GoogleUserDetails(oAuth2User.getAttributes());
         }
-        System.out.println(oAuth2UserInfo.getName());
         String providerId = oAuth2UserInfo.getProviderId();
         String email = oAuth2UserInfo.getEmail();
         // String loginId = provider + "_" +providerId;
         String name = oAuth2UserInfo.getName();
 
-        Users user = userRepository.findByEmail(email).orElseGet(() -> {
-            // 첫 로그인이면 유저 등록
+        boolean isNewUser = false;
+        Users user = null;
+
+        Optional<Users> optionalUsers = userRepository.findByEmail(email);
+        if (optionalUsers.isPresent()) {
+            user = optionalUsers.get();
+            isNewUser = false;
+        } else {
+            isNewUser = true;
+            /*
             Users newUser = new Users();
             newUser.setName(name);
             newUser.setEmail(email);
@@ -55,9 +65,24 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             newUser.setProviderId(providerId);
             newUser.setPassword(passwordEncoder.encode(providerId)); // 임시 비밀번호 설정
             userRepository.save(newUser);
-            return newUser;
-        });
+            user = newUser;
+             */
 
-        return new PrincipalDetails(user, oAuth2User.getAttributes());
+        }
+        log.info("신규 사용자 여부: {}", isNewUser);
+//
+//        Users user = userRepository.findByEmail(email).orElseGet(() -> {
+//            // 첫 로그인이면 유저 등록
+//            Users newUser = new Users();
+//            newUser.setName(name);
+//            newUser.setEmail(email);
+//            newUser.setProvider(provider);
+//            newUser.setProviderId(providerId);
+//            newUser.setPassword(passwordEncoder.encode(providerId)); // 임시 비밀번호 설정
+//            userRepository.save(newUser);
+//            return newUser;
+//        });
+
+        return new PrincipalDetails(user, oAuth2User.getAttributes(), isNewUser);
     }
 }

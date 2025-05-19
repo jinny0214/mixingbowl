@@ -3,11 +3,13 @@ package com.mixingbowl.auth;
 import com.mixingbowl.user.domain.Users;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 @Slf4j
@@ -16,23 +18,31 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
     private Users user;
     private Map<String, Object> attributes;
 
+    private boolean isNewUser;
+
     // 일반 로그인
     public PrincipalDetails(Users user) {
         this.user = user;
     }
 
     // OAuth 로그인
-    public PrincipalDetails(Users user, Map<String, Object> attributes) {
+    public PrincipalDetails(Users user, Map<String, Object> attributes, boolean isNewUser) {
         this.user = user;
         this.attributes = attributes;
+        this.isNewUser = isNewUser;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        Collection<GrantedAuthority> collect = new ArrayList<>();
-        // collect.add((GrantedAuthority) () -> user.getName());
+        // 기본적으로 ROLE_USER 권한 부여
+        SimpleGrantedAuthority userRole = new SimpleGrantedAuthority("ROLE_USER");
 
-        return collect;
+        // OAuth 로그인의 경우 provider 기반 role 추가
+        if (user.getProvider() != null) {
+            SimpleGrantedAuthority providerRole = new SimpleGrantedAuthority("ROLE_" + user.getProvider().toUpperCase());
+            return Collections.singletonList(providerRole);
+        }
+        return Collections.singletonList(userRole);
     }
 
     @Override
@@ -42,7 +52,12 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
 
     @Override
     public String getUsername() {
-        return user.getName();
+        if (user != null) {
+            return user.getEmail();
+        } else if (attributes != null && attributes.containsKey("email")) {
+            return (String) attributes.get("email");
+        }
+        return null;
     }
 
     @Override
@@ -75,5 +90,9 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
     @Override
     public String getName() {
         return null;
+    }
+
+    public boolean isNewUser() {
+        return isNewUser;
     }
 }
