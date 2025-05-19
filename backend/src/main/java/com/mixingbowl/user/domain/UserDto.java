@@ -1,9 +1,8 @@
 package com.mixingbowl.user.domain;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter @Setter
+@Data
 public class UserDto {
 
     private String email;
