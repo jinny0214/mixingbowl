@@ -1,6 +1,5 @@
 package com.mixingbowl.config;
 
-import com.mixingbowl.auth.AuthSuccessHandler;
 import com.mixingbowl.filter.JwtAuthenticationFilter;
 import com.mixingbowl.oauth.OAuth2SuccessHandler;
 import com.mixingbowl.oauth.PrincipalOauth2UserService;
