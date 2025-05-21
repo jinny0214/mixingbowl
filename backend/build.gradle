@@ -38,6 +38,7 @@ dependencies {
 
 	// Actuator
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'  // Prometheus 메트릭 수집
 
 	// 쿼리 파라미터 로그 남기는 외부 라이브러리
 	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.10.0'

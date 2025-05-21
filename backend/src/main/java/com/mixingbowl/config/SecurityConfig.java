@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT 기반이라면 STATELESS
                 // 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/oauth2/**", "/api/user/**", "/actuator/health").permitAll() // 로그인/회원가입 허용
+                        .requestMatchers("/api/auth/**", "/oauth2/**", "/api/user/**", "/actuator/health", "/actuator/prometheus").permitAll() // 로그인/회원가입 허용  ** prometheus 허용 ** 
                         .anyRequest().authenticated())
                 // OAuth2 인증 후 사용자 정보를 받아오는 과정에서 사용할 커스텀 OAuth2UserService 등록(사용자 정보 DB에 저장 및 세션 바인딩 등 처리)
                 .oauth2Login(oauth2 -> oauth2
