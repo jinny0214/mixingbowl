@@ -7,6 +7,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -33,15 +34,18 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // 기본적으로 ROLE_USER 권한 부여
-        SimpleGrantedAuthority userRole = new SimpleGrantedAuthority("ROLE_USER");
-
-        // OAuth 로그인의 경우 provider 기반 role 추가
-        if (user.getProvider() != null) {
-            SimpleGrantedAuthority providerRole = new SimpleGrantedAuthority("ROLE_" + user.getProvider().toUpperCase());
-            return Collections.singletonList(providerRole);
-        }
-        return Collections.singletonList(userRole);
+        Collection<GrantedAuthority> collect = new ArrayList<>();
+        return collect;
+//
+//        // 기본적으로 ROLE_USER 권한 부여
+//        SimpleGrantedAuthority userRole = new SimpleGrantedAuthority("ROLE_USER");
+//
+//        // OAuth 로그인의 경우 provider 기반 role 추가
+//        if (user != null && user.getProvider() != null) {
+//            SimpleGrantedAuthority providerRole = new SimpleGrantedAuthority("ROLE_" + user.getProvider().toUpperCase());
+//            return Collections.singletonList(providerRole);
+//        }
+//        return Collections.singletonList(userRole);
     }
 
     @Override
