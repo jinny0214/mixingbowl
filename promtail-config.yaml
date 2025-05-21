@@ -1,0 +1,40 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Docker 컨테이너 로그 수집
+  - job_name: docker-containers
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: docker-containers
+          __path__: /var/lib/docker/containers/*/*.log
+    pipeline_stages:
+      - docker: {}
+
+  # 호스트 시스템 로그 수집
+  - job_name: system-logs
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: system-logs
+          __path__: /var/log/*.log
+
+  # Promtail 자신의 로그는 제외
+  - job_name: promtail-logs
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: promtail-logs
+          __path__: /var/log/promtail.log
+    relabel_configs:
+      - source_labels: [__path__]
+        regex: .*
+        action: drop 
