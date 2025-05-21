@@ -21,9 +21,6 @@ on:
       - 'backend/**'
       - 'prometheus/**'
       - 'docker-compose.yaml'
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
 
 # 보안 환경 설정
 env:
