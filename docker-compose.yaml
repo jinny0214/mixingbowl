@@ -25,7 +25,7 @@ services:
     cpus: 1
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${NLP_PORT:-5001}/health"]
-      interval: 30s
+      interval: 40s
       timeout: 10s
       retries: 3
       start_period: 40s
