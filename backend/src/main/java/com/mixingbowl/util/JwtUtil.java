@@ -19,11 +19,13 @@ public class JwtUtil {
     private final AppConfig appConfig;
 
     public String generateToken(String email) {
+        log.info("genarateToken: {}", email);
 
         return Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + appConfig.getJwtExpiration()))
+//                .signWith(Keys.hmacShaKeyFor(appConfig.getJwtSecret().getBytes()), SignatureAlgorithm.HS256)
                 .signWith(Keys.hmacShaKeyFor(appConfig.getJwtSecret().getBytes()), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -31,13 +33,16 @@ public class JwtUtil {
     public String getEmailFromToken(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(appConfig.getJwtSecret().getBytes())
+//                    .setSigningKey(appConfig.getJwtSecret().getBytes())
+                    .setSigningKey(Keys.hmacShaKeyFor(appConfig.getJwtSecret().getBytes()))
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
-            return claims.getSubject();
+            String email = claims.getSubject();
+            log.info("Extracted email from token: {}", email);
+            return email;
         } catch (Exception e) {
-            log.info(e.getMessage());
+            log.error("Error extracting email from token: {}", e.getMessage());
             throw new RuntimeException("Invalid token", e);
         }
     }
@@ -45,11 +50,13 @@ public class JwtUtil {
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(appConfig.getJwtSecret().getBytes())
+//                    .setSigningKey(appConfig.getJwtSecret().getBytes())
+                    .setSigningKey(Keys.hmacShaKeyFor(appConfig.getJwtSecret().getBytes()))
                     .build()
-                    .parseClaimsJwt(token);
+                    .parseClaimsJws(token);
             return true;
         } catch (Exception e) {
+            log.error("Token validation failed: {}", e.getMessage());
             return false;
         }
     }
