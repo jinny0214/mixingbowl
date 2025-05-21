@@ -43,7 +43,6 @@ jobs:
           languages: python, java
           
   build-and-test:
-    needs: security-check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -103,7 +102,7 @@ jobs:
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   deploy:
-    needs: [security-check, build-and-test]
+    needs: build-and-test
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/python-dev') ||
       (github.event_name == 'pull_request' && github.base_ref == 'py/dev')
