@@ -106,6 +106,27 @@ services:
     networks:
       - mixingbowl-network
 
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: mixingbowl-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - mixingbowl-network
+
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: mixingbowl-promtail
+    volumes:
+      - /var/log:/var/log
+      - ./promtail-config.yaml:/etc/promtail/promtail.yaml
+    command: -config.file=/etc/promtail/promtail.yaml
+    depends_on:
+      - loki
+    networks:
+      - mixingbowl-network
+
 networks:
   mixingbowl-network:
     driver: bridge
