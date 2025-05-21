@@ -15,7 +15,7 @@ on:
       - 'prometheus/**'
       - 'docker-compose.yaml'
   pull_request:
-    branches: [ py/dev ]
+    branches: [ py/dev, back/dev ]
     paths:
       - 'nlp-server/**'
       - 'backend/**'
