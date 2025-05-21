@@ -9,8 +9,16 @@ permissions:
 on:
   push:
     branches: [ python-dev ]
+    paths:
+      - 'nlp-server/**'
+      - 'backend/**'
+      - 'prometheus/**'
+      - 'docker-compose.yaml'
   pull_request:
     branches: [ py/dev ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
 
 # 보안 환경 설정
 env:
