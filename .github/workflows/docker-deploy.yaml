@@ -16,6 +16,11 @@ on:
       - 'docker-compose.yaml'
   pull_request:
     branches: [ py/dev ]
+    paths:
+      - 'nlp-server/**'
+      - 'backend/**'
+      - 'prometheus/**'
+      - 'docker-compose.yaml'
     paths-ignore:
       - '**.md'
       - 'docs/**'
