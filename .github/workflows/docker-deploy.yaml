@@ -21,16 +21,6 @@ on:
       - 'backend/**'
       - 'prometheus/**'
       - 'docker-compose.yaml'
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: '배포 환경 선택'
-        required: true
-        default: 'production'
-        type: choice
-        options:
-        - production
-        - staging
 
 # 보안 환경 설정
 env:
