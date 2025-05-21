@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  nlp-server:
+  nlp-server: 
     build:
       context: ./nlp-server
       dockerfile: Dockerfile
