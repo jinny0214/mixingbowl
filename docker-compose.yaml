@@ -63,7 +63,7 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT:-8080}/actuator/health"]
-      interval: 30s
+      interval: 35s
       timeout: 10s
       retries: 3
       start_period: 40s
