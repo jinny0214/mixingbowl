@@ -1,0 +1,43 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+  server:
+    port: 8080
+  datasource:
+    url: jdbc:h2:mem:mixingbowl
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+  h2:
+    console:
+      enabled: true
+      settings:
+        web-allow-others: true
+
+app:
+  frontend-url: http://localhost:3000
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000  # 24시간(밀리초 단위, 필요에 따라 조정)
+
+# Prometheus 메트릭 수집
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    prometheus:
+      enabled: true 
