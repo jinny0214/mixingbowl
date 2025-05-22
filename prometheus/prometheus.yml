@@ -1,16 +1,54 @@
 global:
-  scrape_interval: 15s
-  evaluation_interval: 15s
+  scrape_interval: 15s     # 전역 스크랩 주기
+  evaluation_interval: 15s # 규칙 평가 주기
+  scrape_timeout: 10s     # 스크랩 타임아웃
 
+# 외부 레이블 설정
+  external_labels:
+    environment: 'production'
+    region: 'default'
+
+# 스크랩 설정
 scrape_configs:
   - job_name: 'spring-actuator'
     metrics_path: '/actuator/prometheus'
+    scheme: 'http'
+    scrape_interval: 5s
+    scrape_timeout: 4s
+    metrics_path: '/actuator/prometheus'
+    
+    # 재시도 설정
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: '${1}'
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'backend'
+    
     static_configs:
       - targets: ['backend:8080']
-    scrape_interval: 5s
+        labels:
+          env: 'prod'
+          app: 'spring-backend'
 
   - job_name: 'nlp-server'
     metrics_path: '/metrics'
+    scheme: 'http'
+    scrape_interval: 5s
+    scrape_timeout: 4s
+    
+    # 재시도 설정
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: '${1}'
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'nlp'
+    
     static_configs:
       - targets: ['nlp-server:5001']
-    scrape_interval: 5s 
+        labels:
+          env: 'prod'
+          app: 'nlp-service' 
