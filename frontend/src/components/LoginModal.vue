@@ -42,7 +42,6 @@
           <div class="form-group">
             <label for="email">Email</label>
             <input
-              ref="emailInput"
               type="email"
               id="email"
               v-model="email"
@@ -103,9 +102,9 @@
             </div>
           </div>
 
-          <!-- <div class="forgot-password" v-if="!isSignupMode">
+          <div class="forgot-password" v-if="!isSignupMode">
             <a href="#">Forgot password?</a>
-          </div> -->
+          </div>
 
           <!-- <button type="submit" class="login-button" @click="handleLogin"> -->
           <button type="submit" class="login-button">
@@ -188,7 +187,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { register } from '@/services/auth'
 
@@ -212,25 +211,12 @@ const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const isSignupMode = ref(props.isSignupMode)
-const emailInput = ref(null)
 
 watch(
   () => props.isSignupMode,
   (newValue) => {
+    console.log('isSignupMode watch:', newValue)
     isSignupMode.value = newValue
-  }
-)
-
-watch(
-  () => props.show,
-  (newValue) => {
-    if (newValue) {
-      nextTick(() => {
-        if (emailInput.value) {
-          emailInput.value.focus()
-        }
-      })
-    }
   }
 )
 
@@ -254,7 +240,6 @@ const handleLogin = async () => {
     }
   } catch (error) {
     console.error('Login failed:', error)
-    alert(error.response.data.message)
   }
 }
 
@@ -267,6 +252,9 @@ const handleSocialLogin = (provider) => {
   handleClose()
 }
 
+const handleSignup = () => {
+  isSignupMode.value = false
+}
 </script>
 
 <style scoped>

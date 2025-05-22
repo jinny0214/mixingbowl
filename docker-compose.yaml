@@ -1,0 +1,138 @@
+version: '3.8'
+
+services:
+  nlp-server:
+    build:
+      context: ./nlp-server
+      dockerfile: Dockerfile
+    container_name: mixingbowl-nlp_server
+    restart: unless-stopped
+    ports:
+      - "${NLP_PORT:-5001}:${NLP_PORT:-5001}"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+      - PORT=${NLP_PORT:-5001}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./nlp-server/logs:/app/logs
+    networks:
+      - mixingbowl-network
+    mem_limit: 1G
+    cpus: 1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${NLP_PORT:-5001}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mixingbowl-backend
+    depends_on:
+      - nlp-server
+    ports:
+      - "${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
+      - SERVER_PORT=${SERVER_PORT:-8080}
+      - JAVA_OPTS=-XX:+UseG1GC -Xmx512m -Xms256m
+      - SPRING_DATASOURCE_URL=jdbc:h2:mem:mixingbowl
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_H2_CONSOLE_ENABLED=true
+      - SPRING_H2_CONSOLE_SETTINGS_WEB_ALLOW_OTHERS=true
+      - NLP_SERVER_URL=http://nlp-server:5001
+      - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - ./backend/logs:/app/logs
+    networks:
+      - mixingbowl-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT:-8080}/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mixingbowl-prometheus
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - "9090:9090"
+    networks:
+      - mixingbowl-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mixingbowl-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    depends_on:
+      - prometheus
+    networks:
+      - mixingbowl-network
+
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: mixingbowl-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - mixingbowl-network
+
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: mixingbowl-promtail
+    volumes:
+      - /var/log:/var/log
+      - ./promtail-config.yaml:/etc/promtail/promtail.yaml
+    command: -config.file=/etc/promtail/promtail.yaml
+    depends_on:
+      - loki
+    networks:
+      - mixingbowl-network
+
+networks:
+  mixingbowl-network:
+    driver: bridge
+
+volumes:
+  prometheus_data:
+  grafana_data: 

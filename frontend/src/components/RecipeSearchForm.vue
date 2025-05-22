@@ -17,36 +17,6 @@
           class="search-input"
           @keyup.enter="searchRecipe"
         />
-
-        <label
-          for="image-upload"
-          class="image-upload-button"
-          :class="{ 'has-image': imageFile }"
-        >
-          <input
-            type="file"
-            id="image-upload"
-            accept="image/*"
-            @change="handleImageUpload"
-            class="hidden-input"
-          />
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-            <polyline points="21 15 16 10 5 21"></polyline>
-          </svg>
-        </label>
-
         <button
           v-if="searchQuery.length > 0"
           @click="clearSearch"
@@ -101,33 +71,6 @@
       </button>
     </div>
 
-    <!-- Image Preview Area -->
-    <div v-if="imageFile" class="image-preview-container">
-      <div class="image-preview-header">
-        <span>Image to search</span>
-        <button @click="clearImage" class="clear-image-button">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-      <div class="image-preview">
-        <img :src="imagePreview" alt="Selected image" />
-        <p class="image-name">{{ imageFile.name }}</p>
-      </div>
-    </div>
-
     <div
       class="search-suggestions"
       v-if="!isLoading && searchQuery.length === 0 && !props.hasResults"
@@ -159,8 +102,6 @@ const props = defineProps({
 const emit = defineEmits(['search', 'clear', 'openLoginModal'])
 
 const searchQuery = ref('')
-const imageFile = ref(null)
-const imagePreview = ref('')
 const popularTags = ref([
   '김치찌개',
   '된장찌개',
@@ -180,11 +121,7 @@ const handleSearch = () => {
 
   if (!auth.isAuthenticated) {
     emit('openLoginModal', searchQuery.value)
-  } else if (imageFile.value) {
-    // If we have an image, emit imageSearch event
-    emit('imageSearch', imageFile.value)
   } else if (searchQuery.value.trim()) {
-    // Otherwise, emit regular search event
     emit('search', searchQuery.value)
   }
 }
@@ -197,37 +134,6 @@ const clearSearch = () => {
 const selectTag = (tag) => {
   searchQuery.value = tag
   handleSearch()
-}
-
-const handleImageUpload = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-
-  // Check if file is an image
-  if (!file.type.match('image.*')) {
-    console.log('Please select an image file')
-    return
-  }
-
-  imageFile.value = file
-
-  // Create preview
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    imagePreview.value = e.target.result
-  }
-  reader.readAsDataURL(file)
-}
-
-const clearImage = () => {
-  imageFile.value = null
-  imagePreview.value = ''
-
-  // Reset the file input
-  const fileInput = document.getElementById('image-upload')
-  if (fileInput) {
-    fileInput.value = ''
-  }
 }
 </script>
 
@@ -256,8 +162,7 @@ const clearImage = () => {
 .search-input {
   width: 100%;
   padding: 1rem 1.25rem;
-  /* padding-right: 2.5rem; */
-  padding-right: 5rem;
+  padding-right: 2.5rem;
   border: none;
   box-sizing: border-box;
   border-radius: 8px;
@@ -276,43 +181,9 @@ const clearImage = () => {
   color: #aaa;
 }
 
-/* Image Upload Button */
-.image-upload-button {
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #4db8ed;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem;
-  border-radius: 50%;
-  z-index: 2;
-}
-
-.image-upload-button:hover {
-  background-color: #f0f9ff;
-}
-
-.image-upload-button.has-image {
-  color: #407ef2;
-}
-
-.hidden-input {
-  position: absolute;
-  width: 0;
-  height: 0;
-  opacity: 0;
-}
-
 .clear-button {
   position: absolute;
-  /* right: 0.75rem; */
-  right: 2.75rem;
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -329,71 +200,6 @@ const clearImage = () => {
 .clear-button:hover {
   color: #888;
   background-color: #f8f8f8;
-}
-
-/* Image Preview Container */
-.image-preview-container {
-  width: 100%;
-  max-width: 700px;
-  margin-bottom: 1.5rem;
-  background-color: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.image-preview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.image-preview-header span {
-  font-weight: 500;
-  color: #4b5563;
-}
-
-.clear-image-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #6b7280;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.25rem;
-  border-radius: 50%;
-}
-
-.clear-image-button:hover {
-  background-color: #f3f4f6;
-  color: #4b5563;
-}
-
-.image-preview {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.image-preview img {
-  max-width: 100%;
-  max-height: 200px;
-  object-fit: contain;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-}
-
-.image-name {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0;
-  text-align: center;
-  word-break: break-all;
 }
 
 .search-button {
@@ -414,7 +220,7 @@ const clearImage = () => {
 }
 
 .search-button:hover:not(:disabled) {
-  background-color: #407ef2;
+  background-color: #407ef2; /* color 수정 필요 */
 }
 
 .search-button:disabled {
