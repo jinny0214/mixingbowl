@@ -1,0 +1,108 @@
+global:
+  scrape_interval: 15s     # 전역 스크랩 주기
+  evaluation_interval: 15s # 규칙 평가 주기
+  scrape_timeout: 10s     # 스크랩 타임아웃
+
+# 외부 레이블 설정
+  external_labels:
+    environment: 'production'
+    region: 'default'
+
+# 알람 매니저 설정
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - 'alertmanager:9093'
+
+# 규칙 파일 설정
+rule_files:
+  - "rules/alert.rules"
+  - "rules/recording.rules"
+
+# 스토리지 설정
+storage:
+  tsdb:
+    path: /prometheus
+    retention.time: 15d
+    retention.size: 50GB
+    wal_compression: true
+
+# 스크랩 설정
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          env: 'prod'
+          app: 'prometheus'
+
+  - job_name: 'spring-actuator'
+    metrics_path: '/actuator/prometheus'
+    scheme: 'http'
+    scrape_interval: 5s
+    scrape_timeout: 4s
+    
+    # 서비스 검색 설정
+    dns_sd_configs:
+      - names:
+        - 'backend'
+        type: 'A'
+        port: 8080
+    
+    # 재시도 설정
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: '${1}'
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'backend'
+    
+    static_configs:
+      - targets: ['backend:8080']
+        labels:
+          env: 'prod'
+          app: 'spring-backend'
+
+  - job_name: 'nlp-server'
+    metrics_path: '/metrics'
+    scheme: 'http'
+    scrape_interval: 5s
+    scrape_timeout: 4s
+    
+    # 서비스 검색 설정
+    dns_sd_configs:
+      - names:
+        - 'nlp-server'
+        type: 'A'
+        port: 5001
+    
+    # 재시도 설정
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: '${1}'
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'nlp'
+    
+    static_configs:
+      - targets: ['nlp-server:5001']
+        labels:
+          env: 'prod'
+          app: 'nlp-service'
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          env: 'prod'
+          app: 'node-metrics'
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+        labels:
+          env: 'prod'
+          app: 'container-metrics' 
