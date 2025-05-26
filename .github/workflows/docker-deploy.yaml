@@ -1,0 +1,200 @@
+name: MixingBowl Docker CI/CD Pipeline
+
+# 퍼블릭 저장소 보안 설정
+permissions:
+  contents: read
+  packages: write
+  pull-requests: read
+
+on:
+  push:
+    branches: [ python-dev ]
+    paths:
+      - 'nlp-server/**'
+      - 'backend/**'
+      - 'prometheus/**'
+      - 'docker-compose.yaml'
+  pull_request:
+    branches: [ py/dev, back/dev ]
+    paths:
+      - 'nlp-server/**'
+      - 'backend/**'
+      - 'prometheus/**'
+      - 'docker-compose.yaml'
+
+# 보안 환경 설정
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+  NLP_IMAGE: mixingbowl-nlp
+  BACKEND_IMAGE: mixingbowl-backend
+
+jobs:
+  # PR 보안 검증
+  security-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: '[ "python", "java" ]'
+
+      - name: Security scan
+        uses: github/codeql-action/analyze@v2
+          
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          version: latest
+          driver-opts: |
+            image=moby/buildkit:latest
+            network=host
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push NLP Server
+        uses: docker/build-push-action@v4
+        with:
+          context: ./nlp-server
+          file: ./nlp-server/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.NLP_IMAGE }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.NLP_IMAGE }}:${{ github.sha }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      - name: Build and push Backend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.BACKEND_IMAGE }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.BACKEND_IMAGE }}:${{ github.sha }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      # 캐시 정리
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+  deploy:
+    needs: build-and-test
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/python-dev') ||
+      (github.event_name == 'pull_request' && github.base_ref == 'py/dev')
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Docker Compose
+        run: |
+          # Docker Compose 플러그인 설치
+          DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+          mkdir -p $DOCKER_CONFIG/cli-plugins
+          curl -SL https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+          chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+          docker compose version
+
+      - name: Configure Environment
+        run: |
+          # Secure environment setup
+          set -o errexit
+          set -o nounset
+          set -o pipefail
+          
+          # Create secure temporary directory
+          TEMP_DIR=$(mktemp -d)
+          trap 'rm -rf "${TEMP_DIR}"' EXIT
+          
+          cat << EOF > "${TEMP_DIR}/.env.template"
+          NLP_PORT=5001
+          SERVER_PORT=8080
+          SPRING_PROFILES_ACTIVE=prod
+          FLASK_ENV=production
+          FLASK_DEBUG=0
+          PYTHONUNBUFFERED=1
+          EOF
+          
+          # Secure secrets handling
+          declare -A secrets=(
+            ["NLP_PORT"]="${{ secrets.NLP_PORT }}"
+            ["SERVER_PORT"]="${{ secrets.SERVER_PORT }}"
+            ["JWT_SECRET"]="${{ secrets.JWT_SECRET }}"
+            ["NAVER_CLIENT_ID"]="${{ secrets.NAVER_CLIENT_ID }}"
+            ["NAVER_CLIENT_SECRET"]="${{ secrets.NAVER_CLIENT_SECRET }}"
+            ["GRAFANA_PASSWORD"]="${{ secrets.GRAFANA_PASSWORD }}"
+          )
+          
+          # Create .env file securely
+          cp "${TEMP_DIR}/.env.template" .env
+          chmod 600 .env
+          
+          for key in "${!secrets[@]}"; do
+            if [ -n "${secrets[$key]}" ]; then
+              # Escape special characters in values
+              value=$(echo "${secrets[$key]}" | sed 's/[\/&]/\\&/g')
+              echo "${key}=${value}" >> .env
+            fi
+          done
+          
+          # Verify file permissions and content
+          if [[ "$(stat -c %a .env)" != "600" ]]; then
+            echo "Error: Incorrect file permissions on .env"
+            exit 1
+          fi
+          
+          if [ ! -s .env ]; then
+            echo "Error: .env file is empty or was not created properly"
+            exit 1
+          fi
+          
+          # Clear sensitive environment variables
+          unset secrets
+
+      - name: Deploy with Docker Compose
+        run: |
+          docker-compose pull
+          docker-compose up -d --remove-orphans
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Health check
+        run: |
+          sleep 30
+          curl -f http://localhost:${SERVER_PORT:-8080}/actuator/health || exit 1
+          curl -f http://localhost:${NLP_PORT:-5001}/health || exit 1
+
+      - name: Cleanup old images
+        if: always()
+        run: docker system prune -af --volumes
