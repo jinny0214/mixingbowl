@@ -70,6 +70,25 @@ public class UserController {
 
     }
 
+    @PostMapping("/user/logout")
+    public ResponseEntity<ApiResponse<String>> logout(@AuthenticationPrincipal PrincipalDetails principalDetails, HttpServletResponse response) {
+
+        if (principalDetails == null) {
+            log.warn("PrincipalDetails is null");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail("Unauthorized - No valid authentication"));
+        }
+
+        // 쿠키 삭제
+        Cookie cookie = new Cookie("access_token", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+
+        return ResponseEntity.ok(ApiResponse.success("로그아웃 성공", principalDetails.getUsername()));
+    }
+
     /*
     @PostMapping("/user/login")
     public ResponseEntity<ApiResponse<Users>> login(@RequestBody UserDto userDto) {
@@ -111,7 +130,7 @@ public class UserController {
 
     @GetMapping("/user/check")
     public ResponseEntity<?> getUser(@AuthenticationPrincipal PrincipalDetails principalDetails) {
-        log.info("GET /user/me called");
+        log.info("GET /user/check called");
 
         if (principalDetails == null) {
             log.warn("PrincipalDetails is null");
