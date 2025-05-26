@@ -15,8 +15,7 @@ export const useAuthStore = defineStore('auth', {
           email,
           password
         })
-        
-
+        this.user = response.data.data
         await this.fetchUser(); // 토큰으로 사용자 정보 가져오기
       } catch (error) {
         console.log('Login failed', error)
@@ -24,26 +23,25 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async fetchUser() {
+    async logout() {
       try {
-        const response = await axios.get('http://localhost:8080/api/user/check')
-        console.log('--------')
-        console.log(response)
-        console.log('--------')
-        this.isAuthenticated = true
-
-      } catch (error) {
-        console.log('error', error)
+        await axios.post('http://localhost:8080/api/user/logout')
         this.user = null
         this.isAuthenticated = false
-        this.logout();
+      } catch (error) {
+        console.log('Logout failed:', error)
       }
     },
 
-    logout() {
-      this.user = null
-      this.isAuthenticated = false
-    },
+    async fetchUser() {
+      try {
+        const response = await axios.get('http://localhost:8080/api/user/check')
+        this.isAuthenticated = true
 
+      } catch (error) {
+        this.user = null
+        this.isAuthenticated = false
+      }
+    },
   }
 })

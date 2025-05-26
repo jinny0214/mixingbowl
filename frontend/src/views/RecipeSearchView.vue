@@ -13,8 +13,8 @@
           </div>
           <div class="header-actions">
             <button
-              v-if="!auth.isAuthenticated"
-              @click="openLoginModal()"
+              v-if="!isAuthenticated"
+              @click="openLoginModal"
               class="login-button-header"
             >
               <svg
@@ -36,8 +36,8 @@
               Login
             </button>
             <div v-else class="user-menu">
-              <button class="user-button">
-                <span class="user-name">{{ auth.user?.name || 'Logout' }}</span>
+              <button class="user-button" @click="handleLogout">
+                <span class="user-name">{{ userName }}</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="18"
@@ -64,6 +64,7 @@
       :isLoading="isLoading"
       :hasResults="blogResults.length > 0"
       @search="handleSearch"
+      @imageSearch="handleImageSearch"
       @clear="clearSearch"
       @openLoginModal="openLoginModal"
     />
@@ -154,6 +155,9 @@ const isSignupMode = ref(false)
 
 const socialAccount = ref('')
 
+const isAuthenticated = computed(() => auth.isAuthenticated)
+const userName = computed(() => auth.user?.name || 'Logout')
+
 onMounted(async () => {
   const isNewUser = route.query.isNewUser === 'true'
   const email = route.query.email
@@ -188,7 +192,7 @@ const totalPages = computed(() => {
 
 // Login Modal Methods
 const openLoginModal = (query) => {
-  pendingSearchQuery.value = query
+  if (query) pendingSearchQuery.value = query
   showLoginModal.value = true
   document.body.style.overflow = 'hidden' // Prevent scrolling when modal is open
 }
@@ -200,21 +204,45 @@ const closeLoginModal = () => {
 }
 
 const handleLoginSuccess = () => {
+  console.log('isAuthenticated:', isAuthenticated)
   if (pendingSearchQuery.value) {
-    handleSearch(pendingSearchQuery.value)
+    const query = pendingSearchQuery.value
     pendingSearchQuery.value = ''
+    handleSearch(query)
   }
+}
+
+const handleLogout = async () => {
+  await auth.logout()
 }
 
 const handleSignup = () => {
   router.push('/register')
 }
 
+const handleImageSearch = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  try {
+    const response = await axios.post(
+      'http://localhost:5001/search/image',
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: false,
+      }
+    )
+    console.log('response:', response)
+  } catch (error) {
+    console.log('이미지 검색 실패:', error)
+  }
+}
+
 // Search Methods
 const handleSearch = async (query) => {
-  if (!query.trim()) return
+  if (!query || typeof query !== 'string' || !query.trim()) return
 
-  if (!auth.isAuthenticated) {
+  if (!isAuthenticated.value) {
     openLoginModal(query)
     return
   }
