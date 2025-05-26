@@ -3,6 +3,8 @@ from app.services.nlp_service import NLPService
 from app.services.naver_service import NaverService
 from typing import Any
 from app.config import Config
+from google.cloud import vision
+import json
 
 api_bp = Blueprint("api", __name__)
 nlp_service = NLPService()
@@ -45,6 +47,43 @@ def nlp_handler() -> Response:
             Config.RECIPE_FILTER_ENABLED = original_filter_setting
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+    
+    
+vision_client = vision.ImageAnnotatorClient()
+with open("data/label_ko_mapping.json", "r", encoding="utf-8") as f:
+    LABEL_KO_MAPPING = json.load(f)
+
+@api_bp.route("/search/image", methods=["POST"])
+def search_image() -> Response:
+    file = request.files.get("file")
+
+    print("request.files", request.files)
+    if not file:
+        print("No file uploaded")
+        return jsonify({"error": "No file uploaded"}), 400
+    
+    image = vision.Image(content=file.read())
+    response = vision_client.label_detection(image=image)
+
+    if response.error.message:
+        return jsonify({"error": str(response.error.message)}), 400
+
+    labels = []
+    for label in response.label_annotations:
+        eng_desc = label.description
+        ko_desc = LABEL_KO_MAPPING.get(eng_desc.lower(), eng_desc)
+        labels.append({
+            "label_en": eng_desc,
+            "label_ko": ko_desc,
+            "score": label.score
+        })
+    print("labels", labels)
+
+    return jsonify({
+        "labels": labels
+    })
+    
+    
 
 @api_bp.route("/health")
 def health_check() -> Response:
